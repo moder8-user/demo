@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DataSource } from 'typeorm';
@@ -34,13 +34,37 @@ export class UserService {
   }
 
   findAll() {
-    return this.userRepo.find();
+    return this.userRepo.find({ withDeleted: false });
   }
 
   findOne(id: number) {
     return this.userRepo.findOne({
       where: { id },
     });
+  }
+
+  async updateRole(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (user.role !== Role.ADMIN) {
+      throw new HttpException(
+        "You don't have permission to update this user",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const updatedUser = await this.userRepo.save({
+      ...user,
+      role: updateUserDto.role,
+    });
+
+    return this.returnBasicUser(updatedUser);
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
@@ -51,6 +75,6 @@ export class UserService {
   }
 
   remove(id: number) {
-    return this.userRepo.update(id, { isActive: false, deletedAt: new Date() });
+    return this.userRepo.softDelete(id);
   }
 }

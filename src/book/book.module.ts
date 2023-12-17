@@ -4,10 +4,9 @@ import { BookController } from './book.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Book } from './entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Log } from 'src/log/entities/log.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Book, User, Log])],
+  imports: [TypeOrmModule.forFeature([Book, User])],
   controllers: [BookController],
   providers: [BookService],
 })

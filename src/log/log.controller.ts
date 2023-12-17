@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { LogService } from './log.service';
 import { CreateLogDto } from './dto/create-log.dto';
 import { UpdateLogDto } from './dto/update-log.dto';
+import { UpdateBookDto } from 'src/book/dto/update-book.dto';
 
 @Controller('log')
 export class LogController {
@@ -21,8 +23,8 @@ export class LogController {
   }
 
   @Get()
-  findAll() {
-    return this.logService.findAll();
+  findAll(@Query() query: UpdateBookDto) {
+    return this.logService.findAll({ status: query.status });
   }
 
   @Get(':id')

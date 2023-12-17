@@ -4,7 +4,6 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { DataSource } from 'typeorm';
 import { Book } from './entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Log } from 'src/log/entities/log.entity';
 import { Role } from 'src/helpers/constants';
 
 @Injectable()
@@ -17,10 +16,6 @@ export class BookService {
 
   get userRepo() {
     return this.dataSource.getRepository(User);
-  }
-
-  get logRepo() {
-    return this.dataSource.getRepository(Log);
   }
 
   returnBasicUser(user: User) {
@@ -50,7 +45,7 @@ export class BookService {
   }
 
   findAll() {
-    return this.bookRepo.find();
+    return this.bookRepo.find({ withDeleted: false });
   }
 
   findOne(id: number) {
@@ -86,6 +81,6 @@ export class BookService {
   }
 
   remove(id: number) {
-    return this.bookRepo.update(id, { deletedAt: new Date() });
+    return this.bookRepo.softDelete(id);
   }
 }

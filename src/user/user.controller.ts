@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -28,6 +29,11 @@ export class UserController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
+  }
+
+  @Put(':id')
+  updateRole(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateRole(+id, updateUserDto);
   }
 
   @Patch(':id')

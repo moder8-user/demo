@@ -1,12 +1,10 @@
 import { Status } from 'src/helpers/constants';
-import { Log } from 'src/log/entities/log.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -32,11 +30,21 @@ export class Book {
   @Column({ default: Status.AVAILABLE, enum: Status, type: 'enum' })
   status: Status;
 
-  @ManyToOne(() => User, (user) => user.books, { nullable: true })
+  @ManyToOne(() => User, (user) => user.books, {
+    nullable: true,
+    cascade: true,
+  })
   createdBy: User;
 
-  @ManyToMany(() => Log, (log) => log.books, { nullable: true })
-  logs: Log[];
+  @ManyToOne(() => User, (user) => user.requestedBooks, {
+    nullable: true,
+  })
+  requestedBy: User;
+
+  @ManyToOne(() => User, (user) => user.approvedBooks, {
+    nullable: true,
+  })
+  approvedBy: User;
 
   @CreateDateColumn()
   createdAt: Date;

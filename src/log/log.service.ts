@@ -4,8 +4,8 @@ import { UpdateLogDto } from './dto/update-log.dto';
 import { Book } from 'src/book/entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
 import { DataSource, In } from 'typeorm';
-import { Log } from './entities/log.entity';
-import { Status } from 'src/helpers/constants';
+import { Role, Status } from 'src/helpers/constants';
+import { UpdateBookDto } from 'src/book/dto/update-book.dto';
 
 @Injectable()
 export class LogService {
@@ -19,50 +19,78 @@ export class LogService {
     return this.dataSource.getRepository(User);
   }
 
-  get logRepo() {
-    return this.dataSource.getRepository(Log);
-  }
-
   returnBasicUser(user: User) {
     delete user.password;
     return user;
   }
 
   async create(createLogDto: CreateLogDto) {
-    const bookCount = await this.bookRepo.count({
-      where: { id: In(createLogDto.books), status: Status.AVAILABLE },
+    const { books, requestedBy } = createLogDto;
+
+    const bookCount = await this.bookRepo.find({
+      where: { id: In(books), status: Status.AVAILABLE },
     });
 
-    if (bookCount < 1) {
+    if (bookCount.length < 1) {
       throw new HttpException('No books are available', HttpStatus.NOT_FOUND);
     }
 
-    const { books, requestedBy } = createLogDto;
-    const users = await this.userRepo.find({
-      where: { id: In(requestedBy) },
+    const user = await this.userRepo.findOne({
+      where: { id: requestedBy },
     });
-    const allBooks = await this.bookRepo.find({ where: { id: In(books) } });
 
-    const log = await this.logRepo.save({
-      books: allBooks,
-      requestedBy: users,
-    });
-    return log;
+    const logs = await this.bookRepo.update(
+      {
+        id: In(bookCount.map((book) => book.id)),
+      },
+      {
+        status: Status.PENDING,
+        requestedBy: user,
+      },
+    );
+    return logs;
   }
 
-  findAll() {
-    return `This action returns all log`;
+  findAll(partialBookDto: UpdateBookDto) {
+    return this.bookRepo.find({
+      where: {
+        status: partialBookDto.status,
+      },
+      withDeleted: false,
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} log`;
+    return this.bookRepo.findOne({
+      where: { id },
+    });
   }
 
-  update(id: number, updateLogDto: UpdateLogDto) {
-    return `This action updates a #${id} log`;
+  async update(id: number, updateLogDto: UpdateLogDto) {
+    let result = {
+      approvedBy: null,
+    };
+    if (updateLogDto.approvedBy) {
+      const user = await this.userRepo.findOne({
+        where: { id: updateLogDto.approvedBy },
+      });
+      if (user.role === Role.MEMBER) {
+        return new HttpException(
+          'Only admins or managers are allowed to approve a book',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+      result = {
+        approvedBy: user,
+      };
+    }
+    return this.bookRepo.update(id, {
+      ...result,
+      status: Status.BORROWED,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} log`;
+    return this.bookRepo.softDelete(id);
   }
 }

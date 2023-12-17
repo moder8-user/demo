@@ -1,9 +1,9 @@
-import { IsArray } from 'class-validator';
+import { IsArray, IsNumber } from 'class-validator';
 
 export class CreateLogDto {
   @IsArray()
   books: number[];
 
-  @IsArray()
-  requestedBy: number[];
+  @IsNumber()
+  requestedBy: number;
 }
