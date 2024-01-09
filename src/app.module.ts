@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
 import { Book } from './book/entities/book.entity';
 import { Log } from './log/entities/log.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { Log } from './log/entities/log.entity';
     UserModule,
     BookModule,
     LogModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

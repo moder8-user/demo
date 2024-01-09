@@ -43,12 +43,25 @@ export class UserService {
     });
   }
 
-  async updateRole(id: number, updateUserDto: UpdateUserDto) {
+  findOneByEmail(email: string) {
+    return this.userRepo.findOne({
+      where: { email },
+    });
+  }
+
+  async updateRole(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    userInfo: { sub: number },
+  ) {
     const user = await this.userRepo.findOne({
+      where: { id: userInfo.sub },
+    });
+    const userToUpdate = await this.userRepo.findOne({
       where: { id },
     });
 
-    if (!user) {
+    if (!user || !userToUpdate) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
@@ -60,7 +73,7 @@ export class UserService {
     }
 
     const updatedUser = await this.userRepo.save({
-      ...user,
+      ...userToUpdate,
       role: updateUserDto.role,
     });
 

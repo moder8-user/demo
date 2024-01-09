@@ -7,10 +7,14 @@ import {
   Param,
   Delete,
   Put,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request } from 'express';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -31,9 +35,15 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id')
-  updateRole(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updateRole(+id, updateUserDto);
+  updateRole(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() req: Request,
+  ) {
+    // @ts-ignore
+    return this.userService.updateRole(+id, updateUserDto, req.user);
   }
 
   @Patch(':id')
